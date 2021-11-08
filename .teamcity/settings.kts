@@ -1,9 +1,7 @@
-import jetbrains.buildServer.configs.kotlin.v2018_2.*
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.Swabra
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.swabra
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.maven
-import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.vcs
-import jetbrains.buildServer.configs.kotlin.v2018_2.vcs.GitVcsRoot
+import jetbrains.buildServer.configs.kotlin.v2018_1.*
+import jetbrains.buildServer.configs.kotlin.v2018_1.buildSteps.maven
+import jetbrains.buildServer.configs.kotlin.v2018_1.triggers.vcs
+import jetbrains.buildServer.configs.kotlin.v2018_1.vcs.GitVcsRoot
 
 /*
 The settings script is an entry point for defining a TeamCity
@@ -27,42 +25,52 @@ To debug in IntelliJ Idea, open the 'Maven Projects' tool window (View
 'Debug' option is available in the context menu for the task.
 */
 
-version = "2018.2"
+version = "2018.1"
 
 project {
-    vcsRoot(PetclinicVcs)
+
+    vcsRoot(HttpsGithubComSpringProjectsSpringPetclinicRefsHeadsMain)
+
     buildType(Build)
+
+    features {
+        feature {
+            id = "PROJECT_EXT_2"
+            type = "OAuthProvider"
+            param("clientId", "619c88d0070401267534")
+            param("defaultTokenScope", "public_repo,repo,repo:status,write:repo_hook")
+            param("secure:clientSecret", "credentialsJSON:09c1b68c-1181-4acf-aaeb-51b8cdcc4804")
+            param("displayName", "GitHub.com")
+            param("gitHubUrl", "https://github.com/")
+            param("providerType", "GitHub")
+        }
+    }
 }
 
 object Build : BuildType({
     name = "Build"
-    artifactRules = "target/*jar"
 
     vcs {
-        root(PetclinicVcs)
+        root(HttpsGithubComSpringProjectsSpringPetclinicRefsHeadsMain)
     }
+
     steps {
         maven {
-            goals = "clean package"
-            dockerImage = "maven:3.6.0-jdk-8"
+            goals = "clean test"
+            runnerArgs = "-Dmaven.test.failure.ignore=true"
+            mavenVersion = defaultProvidedVersion()
         }
     }
+
     triggers {
         vcs {
-            groupCheckinsByCommitter = true
         }
     }
 })
 
-object PetclinicVcs : GitVcsRoot({
-    name = "PetclinicVcs"
-    url = "https://github.com/spring-projects/spring-petclinic.git"
+object HttpsGithubComSpringProjectsSpringPetclinicRefsHeadsMain : GitVcsRoot({
+    name = "https://github.com/spring-projects/spring-petclinic#refs/heads/main"
+    url = "https://github.com/spring-projects/spring-petclinic"
+    branch = "refs/heads/main"
+    param("teamcity:vcsResourceDiscovery:versionedSettingsRoot", "false")
 })
-
-
-fun wrapWithFeature(buildType: BuildType, featureBlock: BuildFeatures.() -> Unit): BuildType {
-    buildType.features {
-        featureBlock()
-    }
-    return buildType
-}
