@@ -1,7 +1,7 @@
-import jetbrains.buildServer.configs.kotlin.v2018_1.*
-import jetbrains.buildServer.configs.kotlin.v2018_1.buildSteps.maven
-import jetbrains.buildServer.configs.kotlin.v2018_1.triggers.vcs
-import jetbrains.buildServer.configs.kotlin.v2018_1.vcs.GitVcsRoot
+import jetbrains.buildServer.configs.kotlin.v2018_2.*
+import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.maven
+import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.vcs
+import jetbrains.buildServer.configs.kotlin.v2018_2.vcs.GitVcsRoot
 
 /*
 The settings script is an entry point for defining a TeamCity
@@ -25,52 +25,39 @@ To debug in IntelliJ Idea, open the 'Maven Projects' tool window (View
 'Debug' option is available in the context menu for the task.
 */
 
-version = "2018.1"
+version = "2018.2"
 
 project {
 
-    vcsRoot(HttpsGithubComSpringProjectsSpringPetclinicRefsHeadsMain)
+    vcsRoot(PetclinicVcs)
 
     buildType(Build)
-
-    features {
-        feature {
-            id = "PROJECT_EXT_2"
-            type = "OAuthProvider"
-            param("clientId", "619c88d0070401267534")
-            param("defaultTokenScope", "public_repo,repo,repo:status,write:repo_hook")
-            param("secure:clientSecret", "credentialsJSON:09c1b68c-1181-4acf-aaeb-51b8cdcc4804")
-            param("displayName", "GitHub.com")
-            param("gitHubUrl", "https://github.com/")
-            param("providerType", "GitHub")
-        }
-    }
 }
 
 object Build : BuildType({
     name = "Build"
 
+    artifactRules = "target/*jar"
+
     vcs {
-        root(HttpsGithubComSpringProjectsSpringPetclinicRefsHeadsMain)
+        root(PetclinicVcs)
     }
 
     steps {
         maven {
-            goals = "clean test"
-            runnerArgs = "-Dmaven.test.failure.ignore=true"
-            mavenVersion = defaultProvidedVersion()
+            goals = "clean package"
+            dockerImage = "maven:3.6.0-jdk-8"
         }
     }
 
     triggers {
         vcs {
+            groupCheckinsByCommitter = true
         }
     }
 })
 
-object HttpsGithubComSpringProjectsSpringPetclinicRefsHeadsMain : GitVcsRoot({
-    name = "https://github.com/spring-projects/spring-petclinic#refs/heads/main"
-    url = "https://github.com/spring-projects/spring-petclinic"
-    branch = "refs/heads/main"
-    param("teamcity:vcsResourceDiscovery:versionedSettingsRoot", "false")
+object PetclinicVcs : GitVcsRoot({
+    name = "PetclinicVcs"
+    url = "https://github.com/spring-projects/spring-petclinic.git"
 })
