@@ -1,4 +1,5 @@
 import jetbrains.buildServer.configs.kotlin.v2018_2.*
+import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.swabra
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.maven
 import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.vcs
 import jetbrains.buildServer.configs.kotlin.v2018_2.vcs.GitVcsRoot
@@ -32,6 +33,7 @@ project {
     vcsRoot(PetclinicVcs)
 
     buildType(Build)
+
 }
 
 object Build : BuildType({
@@ -53,6 +55,11 @@ object Build : BuildType({
     triggers {
         vcs {
             groupCheckinsByCommitter = true
+        }
+    }
+    features {
+        swabra {
+
         }
     }
 })
